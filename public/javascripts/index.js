@@ -9,49 +9,52 @@ var tmpl = '<li><input type="text"><span></span></li>',
     deleteUl = $('.delete'),          // delete <ul>
     doneUl = $('.done');              // done <ul>
 var itemid;
+ var flag = false;
+ var start, end;
 
 
-    var lock = false;
+
+    
 
     $(addButton).click(function(){
 
-      if(lock == false){
-        lock = true;
-
         $(tmpl).prependTo(mainUl).addClass("is-editing").find('input').focus();
-        mainUl.on('keyup', 'input', function(e){
-          if(e.which === 13){
-            var input = $(this),li = input.parents('li');
-            if(input.val() != null)
-            {
-              li.find('span').text(input.val());
+    }); 
+        mainUl.on('keyup','input',function(e){
+          if(e.which !== 13){
+            flag=true;
+          }
+          if(flag===true){
+              if(e.which === 13){
+              var input = $(this);
+              li = input.parents('li');
+              li.find('span').text( input.val() );
               li.removeClass('is-editing');
+              
+              console.log("cool!");
 
               var newitem = {"done": false, "text": input.val()} ;
-
-              console.log(JSON.stringify(newitem));
 
               $.ajax({
                 url: '/items',
                 type: 'post',
-                data: newitem,
+                data: JSON.stringify(newitem),
                 dataType: 'json',
+                contentType: 'application/json',
                 success: function(data){
                   console.log("POSt!");
                 }
               });
-
-              //save();
-              lock = false;
-            }
-            
+              } 
           }
-        })
-      }
-    })
+        
+        });
+
+      
+    
 
     load();
-
+/*
     function save(){
     	
     	var arr = [];
@@ -62,7 +65,7 @@ var itemid;
     	localStorage.todoItems = JSON.stringify(arr); 
 
     }
-
+*/
     function load()
     {	
       $.ajax({
@@ -92,19 +95,37 @@ var itemid;
 
 
   	$('.main, .done, .delete').sortable({
-  		connectWith: '.connected', 
+  		
+      connectWith: '.connected', 
   		tolerance: "pointer",
   		start: function(e,ui){
   			$(placeholder).addClass("is-dragging");
         
-        itemid = ui.item.index();  
+        itemid = ui.item.index();
+        start = ui.item.index();
+        console.log("start: ",start);  
         
         console.log(itemid);
   		},
   		stop: function(e,ui){
         $(placeholder).removeClass("is-dragging");
-  			save();
-  		},
+        end = ui.item.index();
+        console.log("end: ",end);  
+
+
+        $.ajax({
+          type: 'PUT',
+          url: '/items/'+start+'/reposition/'+end,
+          dataType:"json",
+          contentType: 'application/json',
+          success: function(data) {
+            console.log('move success');
+            
+          }
+        });
+  			
+  		}
+
 
   	});
 
@@ -121,6 +142,14 @@ var itemid;
   		ui.item.remove();
   	});
   	$(".done").on( "sortreceive", function(e, ui){
-  		$(ui.item).prependTo(mainUl).addClass("is-done");
+      $.ajax({
+          url: '/items/'+itemid,
+          type: 'put',
+          dataType:'json',
+          success:function(data){
+            console.log( JSON.stringify(data) );
+          }
+        })
+  		$(ui.item).appendTo(mainUl).addClass("is-done");
   	});
 }());

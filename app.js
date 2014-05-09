@@ -24,12 +24,15 @@ app.get('/items',function(req,res){
 app.post('/items',function(req,res){
 	fs.readFile('todolist.json',function(err,data){
 		var arr = JSON.parse(data);
-		console.log(arr);
-		arr.push(req.body);
-		console.log(arr);
+		console.log(req.body);
+
+		arr.unshift(req.body);
+		
+
 		fs.writeFile('todolist.json',JSON.stringify(arr),function(err, data){
 		  if (err) throw err;
 		})
+		res.send(1);
 
 	})
 
@@ -37,12 +40,60 @@ app.post('/items',function(req,res){
 	
 });
 
+//update the done
+app.put('/items/:id',function(req,res){
+	fs.readFile('todolist.json',function(err, data){
+		console.log(req.params.id);
+		var arr = JSON.parse(data);
+		console.log("改done前："+JSON.stringify(arr));
+
+		arr[req.params.id].done = true;
+
+		console.log("改done後："+JSON.stringify(arr));
+
+		fs.writeFile('todolist.json',JSON.stringify(arr),function(err, data){
+			if (err) throw err;
+		});
+
+	})
+
+});
+
+//change the position
+app.put('/items/:id/reposition/:new_position',function(req,res){
+	fs.readFile('todolist.json',function(err,data){
+
+
+		console.log("id: "+req.params.id+" repo: "+req.params.new_position);
+		var arr = JSON.parse(data);
+		
+		//remove
+		var mvitem = arr.splice(req.params.id,1);
+		console.log(JSON.stringify(arr));
+
+		console.log(mvitem[0]);	
+
+		//add
+		arr.splice(req.params.new_position,0,mvitem[0]);
+		console.log(JSON.stringify(arr));
+
+		fs.writeFile('todolist.json',JSON.stringify(arr),function(err, data){
+			if (err) throw err;
+		});
+
+		res.send(arr);	
+	})
+
+	
+});
+
+
 //delete item
 app.delete('/items/:id',function(req,res){
 	fs.readFile('todolist.json',function(err, data){
 		console.log(req.params.id);
 		var arr = JSON.parse(data);
-		delete arr[req.params.id];
+		arr.splice(req.params.id,1);
 		console.log(JSON.stringify(arr));
 
 		fs.writeFile('todolist.json',JSON.stringify(arr),function(err, data){

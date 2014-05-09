@@ -94,7 +94,7 @@ app.delete('/items/:id',function(req,res){
 		console.log(req.params.id);
 		var arr = JSON.parse(data);
 		arr.splice(req.params.id,1);
-		console.log(JSON.stringify(arr));
+		console.log("delete: "+JSON.stringify(arr));
 
 		fs.writeFile('todolist.json',JSON.stringify(arr),function(err, data){
 			if (err) throw err;

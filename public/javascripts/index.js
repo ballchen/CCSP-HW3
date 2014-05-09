@@ -112,18 +112,21 @@ var itemid;
         end = ui.item.index();
         console.log("end: ",end);  
 
+        if(end>=0){
+          
+          $.ajax({
+            type: 'PUT',
+            url: '/items/'+start+'/reposition/'+end,
+            dataType:"json",
+            contentType: 'application/json',
+            success: function(data) {
+              console.log('move success');
+              
+            }
+          });
+        
+        }
 
-        $.ajax({
-          type: 'PUT',
-          url: '/items/'+start+'/reposition/'+end,
-          dataType:"json",
-          contentType: 'application/json',
-          success: function(data) {
-            console.log('move success');
-            
-          }
-        });
-  			
   		}
 
 
